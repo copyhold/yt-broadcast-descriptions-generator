@@ -8,11 +8,13 @@ import gemini_client
 import youtube_client
 from config import (
     AUDIO_DIR,
+    FOOTER,
     GROUPING_WINDOW_HOURS,
     HISTORY_FILE,
     OUTLINES_DIR,
     detect_language,
 )
+
 
 
 def load_history() -> dict:
@@ -76,9 +78,13 @@ def save_outline(video_id: str, lang: str, outline_text: str) -> None:
     print(f'  Outline saved: {path}')
 
 
-def build_description(outline_text: str, original_description: str) -> str:
-    separator = '\n\n' + '─' * 40 + '\n\n'
-    return outline_text + separator + original_description
+_YT_DESC_LIMIT = 5000
+
+
+def build_description(outline_text: str, original_description: str, lang: str) -> str:
+    footer = FOOTER.get(lang, '')
+    body = f'{outline_text}\n\n{footer}' if footer else outline_text
+    return body[:_YT_DESC_LIMIT]
 
 
 def run(
@@ -147,7 +153,7 @@ def run(
                 lang = v['lang']
                 if lang not in outlines:
                     continue
-                new_desc = build_description(outlines[lang], v['description'])
+                new_desc = build_description(outlines[lang], v['description'], lang)
                 print(f'  Updating description for {v["id"]} ({lang})...')
                 youtube_client.update_video_description(yt, v['id'], new_desc)
         else:

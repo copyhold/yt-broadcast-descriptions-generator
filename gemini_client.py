@@ -46,7 +46,7 @@ Requirements:
    - then write a 3-5 sentence summary of the sermon's main message — this is the most prominent part of the description
    - Then list each service section on its own line with [HH:MM:SS] timecode
    - Sermon broken into its 5–8 sub-parts, each with its own [HH:MM:SS] timecode, a short heading and a summary
-     the format for each sub part should be: [HH:MM:SS] *{heading}* - {summary}
+     the format for each sub part should be: [HH:MM:SS] *{{heading}}* - {{summary}}
    - Scripture references listed under the sermon
    - No administrative or logistical content
    - Suitable as a YouTube video description. bold is single asterisk, italic is a single underline _
