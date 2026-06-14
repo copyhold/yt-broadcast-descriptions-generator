@@ -88,7 +88,7 @@ def build_description(outline_text: str, original_description: str, lang: str) -
 
 
 def run(
-    channel_id: str,
+    playlist_ids: list[str],
     primary_lang: str,
     limit: int,
     credentials_file: str,
@@ -100,8 +100,9 @@ def run(
     print('Authenticating with YouTube...')
     yt = youtube_client.get_authenticated_service(credentials_file)
 
-    print(f'Fetching last {limit} videos from channel {channel_id}...')
-    videos = youtube_client.fetch_recent_videos(yt, channel_id, limit)
+    print(f'Fetching last {limit} videos from playlists: {", ".join(playlist_ids)}...')
+    videos = youtube_client.fetch_videos_from_playlists(yt, playlist_ids, limit)
+    print(videos)
     print(f'Found {len(videos)} videos.')
 
     for v in videos:

@@ -15,7 +15,12 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='Generate church service outlines and update YouTube descriptions.',
     )
-    parser.add_argument('--channel-id', required=True, help='YouTube channel ID (UCxxxxxx...)')
+    parser.add_argument(
+        '--playlist-ids',
+        required=True,
+        nargs='+',
+        help='YouTube playlist ID(s) to fetch videos from (space-separated)',
+    )
     parser.add_argument(
         '--primary-lang',
         choices=['he', 'ru', 'en'],
@@ -58,7 +63,7 @@ def main():
         sys.exit(1)
 
     processor.run(
-        channel_id=args.channel_id,
+        playlist_ids=args.playlist_ids,
         primary_lang=args.primary_lang,
         limit=args.limit,
         credentials_file=args.credentials,

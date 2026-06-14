@@ -29,49 +29,59 @@ def get_authenticated_service(credentials_file: str):
     return build('youtube', 'v3', credentials=creds)
 
 
-def fetch_recent_videos(service, channel_id: str, limit: int) -> list[dict]:
-    videos = []
-    next_page_token = None
+def fetch_videos_from_playlists(service, playlist_ids: list[str], limit: int) -> list[dict]:
+    seen_ids: set[str] = set()
+    videos: list[dict] = []
 
-    while len(videos) < limit:
-        batch = min(50, limit - len(videos))
-        params = {
-            'part': 'snippet',
-            'channelId': channel_id,
-            'maxResults': batch,
-            'order': 'date',
-            'type': 'video',
-        }
-        if next_page_token:
-            params['pageToken'] = next_page_token
+    for playlist_id in playlist_ids:
+        next_page_token = None
+        while True:
+            params: dict = {
+                'part': 'snippet',
+                'playlistId': playlist_id,
+                'maxResults': 50,
+            }
+            if next_page_token:
+                params['pageToken'] = next_page_token
 
-        response = service.search().list(**params).execute()
-        items = response.get('items', [])
-        if not items:
-            break
+            response = service.playlistItems().list(**params).execute()
+            items = response.get('items', [])
+            if not items:
+                break
 
-        video_ids = [item['id']['videoId'] for item in items]
-        details = service.videos().list(
-            part='snippet',
-            id=','.join(video_ids),
-        ).execute()
+            new_video_ids = [
+                item['snippet']['resourceId']['videoId']
+                for item in items
+                if item['snippet']['resourceId'].get('kind') == 'youtube#video'
+                and item['snippet']['resourceId']['videoId'] not in seen_ids
+            ]
 
-        for detail in details.get('items', []):
-            snippet = detail['snippet']
-            videos.append({
-                'id': detail['id'],
-                'title': snippet['title'],
-                'description': snippet.get('description', ''),
-                'published_at': datetime.fromisoformat(
-                    snippet['publishedAt'].replace('Z', '+00:00')
-                ),
-            })
+            if new_video_ids:
+                details = service.videos().list(
+                    part='snippet',
+                    id=','.join(new_video_ids),
+                ).execute()
 
-        next_page_token = response.get('nextPageToken')
-        if not next_page_token:
-            break
+                for detail in details.get('items', []):
+                    if detail['id'] in seen_ids:
+                        continue
+                    seen_ids.add(detail['id'])
+                    snippet = detail['snippet']
+                    videos.append({
+                        'id': detail['id'],
+                        'title': snippet['title'],
+                        'description': snippet.get('description', ''),
+                        'published_at': datetime.fromisoformat(
+                            snippet['publishedAt'].replace('Z', '+00:00')
+                        ),
+                    })
 
-    return videos
+            next_page_token = response.get('nextPageToken')
+            if not next_page_token:
+                break
+
+    videos.sort(key=lambda v: v['published_at'], reverse=True)
+    return videos[:limit]
 
 
 def update_video_description(service, video_id: str, new_description: str) -> None:
