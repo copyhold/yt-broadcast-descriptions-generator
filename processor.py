@@ -57,6 +57,8 @@ def download_audio(video_id: str, output_path: str) -> None:
     url = f'https://www.youtube.com/watch?v={video_id}'
     cmd = [
         'yt-dlp',
+        '--cookies-from-browser', 'firefox',
+        '-f', 'bestaudio/best',
         '-x',
         '--audio-format', 'mp3',
         '--audio-quality', '5',

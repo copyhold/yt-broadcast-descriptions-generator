@@ -1,9 +1,14 @@
 import json
+import logging
 import time
 
 from google import genai
 
 from config import CHURCH_NAME
+
+# We don't use function calling/tools, so the SDK's automatic-function-calling
+# warning ("use AFC in Chat.send_message") is not applicable and just noise.
+logging.getLogger('google_genai.models').setLevel(logging.ERROR)
 
 MODEL = 'gemini-3-flash-preview'
 
