@@ -58,7 +58,7 @@ def download_audio(video_id: str, output_path: str) -> None:
     cmd = [
         'yt-dlp',
         '--cookies-from-browser', 'firefox',
-        '-f', 'bestaudio/best',
+        '-f', 'bestaudio[abr<=128]/bestaudio/worst',
         '-x',
         '--audio-format', 'mp3',
         '--audio-quality', '5',
